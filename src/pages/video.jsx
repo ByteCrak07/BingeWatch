@@ -1,13 +1,12 @@
 import VideoJS from "../components/VideoJS";
 import { useState } from "react";
 
-export default function Video() {
+export default function Video({ match }) {
   const [loaded, setLoaded] = useState(false);
   const [percent, setPercent] = useState(0);
   const [src, setSrc] = useState("");
 
   const videoJsOptions = {
-    autoplay: true,
     controls: true,
     responsive: true,
     fluid: true,

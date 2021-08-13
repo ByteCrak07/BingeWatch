@@ -1,10 +1,68 @@
-import { useState } from "react";
+import { useContext, useRef, useState } from "react";
 import Modal from "../components/modal";
+import { useHistory } from "react-router-dom";
+//contexts
+import { SocketContext, UserContext } from "../contexts/contexts";
 
 export default function Home() {
+  //contexts
+  const { socket } = useContext(SocketContext);
+  const { user, setUser } = useContext(UserContext);
+  //states
   const [showModal1, setShowModal1] = useState(false);
   const [showModal2, setShowModal2] = useState(false);
-  const [name, setName] = useState("");
+  const [name, setName] = useState(user);
+  const [roomId, setRoomId] = useState("");
+  //refs
+  const copySpan = useRef(null);
+  //history
+  const history = useHistory();
+
+  function generateId(len) {
+    var arr = new Uint8Array((len + 1 || 40) / 2);
+    window.crypto.getRandomValues(arr);
+    return Array.from(arr, (dec) => dec.toString(16).padStart(2, "0")).join("");
+  }
+
+  const handleCreateRoom = () => {
+    if (!roomId) {
+      let rId = generateId(8);
+      let randRoom = `${rId.slice(0, 3)}-${rId.slice(3, 5)}r-${rId.slice(
+        5,
+        8
+      )}`;
+      socket.emit("createRoom", { RoomId: randRoom });
+      socket.on("createRoomconf", ({ conf }) => {
+        if (conf) {
+          setRoomId(randRoom);
+          socket.off("createRoomconf");
+        } else {
+          socket.off("createRoomconf");
+          handleJoinRoom();
+        }
+      });
+      console.log("room created");
+    }
+  };
+
+  const handleJoinRoom = () => {
+    socket.emit("joinRoom", { RoomId: roomId });
+    socket.on("joinRoomconf", ({ conf }) => {
+      if (conf) {
+        socket.off("joinRoomconf");
+        console.log("room joined");
+        history.push(`/${roomId}`);
+      } else {
+        alert("Enter valid room id");
+        socket.off("joinRoomconf");
+      }
+    });
+  };
+
+  const changeUser = () => {
+    setUser(name);
+    sessionStorage.setItem("Username", name);
+  };
 
   return (
     <>
@@ -15,6 +73,7 @@ export default function Home() {
         <input
           type="text"
           placeholder="Name"
+          defaultValue={name}
           onChange={(e) => {
             setName(e.target.value);
           }}
@@ -25,6 +84,8 @@ export default function Home() {
             className="py-3 px-6 mr-2 text-white rounded-lg bg-green-500 shadow-lg hover:bg-green-600 disabled:bg-gray-500 disabled:cursor-not-allowed"
             onClick={() => {
               setShowModal1(true);
+              changeUser();
+              handleCreateRoom();
             }}
             disabled={!name}
           >
@@ -34,6 +95,7 @@ export default function Home() {
             className="py-3 px-6 text-white rounded-lg bg-green-500 shadow-lg hover:bg-green-600 disabled:bg-gray-500 disabled:cursor-not-allowed"
             onClick={() => {
               setShowModal2(true);
+              changeUser();
             }}
             disabled={!name}
           >
@@ -46,11 +108,29 @@ export default function Home() {
         <Modal setShowModal={setShowModal1}>
           <>
             <span className="mr-2">
-              <span className="font-bold">Room ID:</span> 123asdas
+              <span className="font-bold">Room ID:</span>{" "}
+              <span style={{ width: 25 }} ref={copySpan}>
+                {roomId}
+              </span>
             </span>
-            <button className="py-3 px-6 text-white rounded-lg bg-green-500 shadow-lg hover:bg-green-600">
-              Join
-            </button>
+            {roomId ? (
+              <button
+                className="py-3 px-6 text-white rounded-lg bg-green-500 shadow-lg hover:bg-green-600"
+                onClick={() => {
+                  let range = document.createRange();
+                  range.selectNode(copySpan.current);
+                  window.getSelection().removeAllRanges();
+                  window.getSelection().addRange(range);
+                  document.execCommand("copy");
+                  window.getSelection().removeAllRanges();
+                  history.push(`/${roomId}`);
+                }}
+              >
+                Join
+              </button>
+            ) : (
+              ""
+            )}
           </>
         </Modal>
       ) : (
@@ -58,14 +138,20 @@ export default function Home() {
       )}
 
       {showModal2 ? (
-        <Modal setShowModal={setShowModal2}>
+        <Modal setShowModal={setShowModal2} clearValue={setRoomId}>
           <>
             <input
               type="text"
               placeholder="Room ID"
-              className="px-3 py-3 relative bg-white rounded text-sm border-0 shadow outline-none focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent mr-5 pl-10"
+              className="px-5 py-3 mb-3 mr-3 relative bg-white rounded text-sm border-0 shadow outline-none ring-2 ring-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              onChange={(e) => {
+                setRoomId(e.target.value);
+              }}
             />
-            <button className="py-3 px-6 text-white rounded-lg bg-green-500 shadow-lg hover:bg-green-600">
+            <button
+              className="py-3 px-6 text-white rounded-lg bg-green-500 shadow-lg hover:bg-green-600"
+              onClick={handleJoinRoom}
+            >
               Join
             </button>
           </>
