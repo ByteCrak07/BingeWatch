@@ -6,7 +6,7 @@ import { SocketContext, UserContext } from "../states/contexts";
 export default function Home() {
   // contexts
   const { socket, setupSocket } = useContext(SocketContext);
-  const { setUser } = useContext(UserContext);
+  const { user, setUser } = useContext(UserContext);
   // states
   const [showModal1, setShowModal1] = useState(false);
   const [showModal2, setShowModal2] = useState(false);
@@ -70,7 +70,8 @@ export default function Home() {
 
   const addUser = () => {
     sessionStorage.setItem("Username", name);
-    setUser(name);
+    if (!user || user === name) setUser(name);
+    else window.location.reload();
   };
 
   return (

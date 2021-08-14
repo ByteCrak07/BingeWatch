@@ -1,9 +1,11 @@
 //Components
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Danger from "./Danger";
 import Success from "./Success";
 
-function Alert(props) {
+const popAlert = {};
+
+function ReturnAlert(props) {
   useEffect(() => {
     const timeout = setTimeout(() => {
       props.setAlert(null);
@@ -24,4 +26,26 @@ function Alert(props) {
   else return "";
 }
 
+function Alert() {
+  const [alert, setAlert] = useState(null);
+  popAlert.display = setAlert;
+
+  return (
+    <>
+      {alert ? (
+        <ReturnAlert
+          type={alert.type}
+          title={alert.title}
+          content={alert.content}
+          icon={alert.icon}
+          setAlert={setAlert}
+        />
+      ) : (
+        <></>
+      )}
+    </>
+  );
+}
+
+export { popAlert };
 export default Alert;

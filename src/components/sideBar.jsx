@@ -1,26 +1,51 @@
 // dependencies
-import { useEffect, useState } from "react";
-//Components
+import { useEffect, useState, useContext } from "react";
+// contexts
+import { SocketContext, UserContext } from "../states/contexts";
+// components
+import { popAlert } from "../components/alerts/Alert";
 import logo from "../assets/logo.png";
 
-function Sidebar({ name, propAudience }) {
+function Sidebar({ name }) {
+  // contexts
+  const { socket } = useContext(SocketContext);
+  const { user } = useContext(UserContext);
+  // states
   const [audience, setAudience] = useState([]);
   const [collapse, setCollapse] = useState(true);
 
+  const handleWelcomeFriends = ({ name, currentUsers }) => {
+    if (name !== user)
+      popAlert.display({
+        type: "success",
+        title: name,
+        content: "joined 🎉",
+      });
+    setAudience(currentUsers);
+  };
+
+  const handleByeFriend = ({ name, currentUsers }) => {
+    if (name !== user)
+      popAlert.display({
+        type: "danger",
+        title: name,
+        content: "left 👋",
+      });
+    setAudience(currentUsers);
+  };
+
   useEffect(() => {
-    setAudience(propAudience);
-  }, [propAudience]);
+    if (socket) {
+      socket.on("welcomeFriends", handleWelcomeFriends);
+      socket.on("byeFriend", handleByeFriend);
+    }
+    // eslint-disable-next-line
+  }, [socket]);
 
   useEffect(() => {
     const sidebar = document.getElementsByClassName("sliding-sidebar")[0];
-    const menu = [...document.getElementsByClassName("menu-btn")];
+
     const checkclick = (e) => {
-      menu.map((btn) => {
-        if (!collapse && btn.contains(e.target)) {
-          setCollapse(true);
-        }
-        return 0;
-      });
       if (!collapse && !sidebar.contains(e.target)) {
         setCollapse(true);
       }
