@@ -82,6 +82,19 @@ const ControlSockets = (io, roomData, audienceData) => {
       }
     });
 
+    socket.on("leaveRoom", ({ RoomId }) => {
+      socket.leave(RoomId);
+      console.log("A User has left room: " + RoomId);
+      let currentUsers = returnAudience(
+        io.sockets.adapter.rooms.get(RoomId),
+        audienceData
+      );
+      io.to(RoomId).emit("byeFriend", {
+        name: socket.Username,
+        currentUsers,
+      });
+    });
+
     //chatsockets
     // socket.on("Newmessage", ({ RoomId, username, message }) => {
     //   const Newmessage = { username, message };

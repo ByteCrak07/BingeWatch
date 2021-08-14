@@ -4,7 +4,7 @@ const app = express();
 app.use(require("cors")());
 app.use(express.json());
 
-const roomData = {};
+const roomData = [];
 const audienceData = {};
 
 app.get("/", (req, res) => {
