@@ -23,10 +23,10 @@ const VideoJS = ({ options }) => {
       if (player) {
         player.dispose();
       }
-      options.sources.map((source) => {
-        URL.revokeObjectURL(source.src);
-        return null;
-      });
+      // options.sources.map((source) => {
+      //   URL.revokeObjectURL(source.src);
+      //   return null;
+      // });
     };
   }, [options]);
 
