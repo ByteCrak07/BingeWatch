@@ -133,7 +133,11 @@ export default function Stage({ match }) {
         ""
       )}
 
-      <div className={`${videoLoaded ? "hidden" : ""}`}>
+      <div
+        className={`flex flex-col justify-center items-center ${
+          videoLoaded ? "hidden" : ""
+        }`}
+      >
         <input
           type="file"
           className="py-3 px-6 mt-5 text-white rounded-lg bg-green-500 shadow-lg block md:inline-block"

@@ -40,13 +40,6 @@ function Sidebar({ name }) {
       socket.on("byeFriend", handleByeFriend);
     }
 
-    const checkKey = (e) => {
-      if (e.key === "Enter") {
-        alert("blah");
-      }
-    };
-    document.addEventListener("keydown", checkKey);
-
     return () => {
       if (socket) {
         socket.off("welcomeFriends");
