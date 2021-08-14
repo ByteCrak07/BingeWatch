@@ -4,9 +4,17 @@ const app = express();
 app.use(require("cors")());
 app.use(express.json());
 
+const roomData = {};
+const audienceData = {};
+
 app.get("/", (req, res) => {
-  console.log(global);
   res.send("Welcome to Binge Watch🍿 Api!!");
+});
+
+app.get("/room", (req, res) => {
+  const roomId = req.query.id;
+  if (roomData[roomId]) res.send({ data: roomData[roomId].Name });
+  else res.status(404).send({ data: "No room" });
 });
 
 const PORT = process.env.PORT || 5000;
@@ -21,4 +29,12 @@ const io = require("socket.io")(server, {
   },
 });
 
-require("./Controllers/Control")(io);
+io.use((socket, next) => {
+  try {
+    const user = socket.handshake.query.Username;
+    socket.Username = user;
+    next();
+  } catch {}
+});
+
+require("./Controllers/userSockets")(io, roomData, audienceData);
