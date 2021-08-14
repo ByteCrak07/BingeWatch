@@ -4,9 +4,10 @@ var usersCount = 0;
 
 const returnAudience = (userIds, allUsers) => {
   const dataArray = [];
-  userIds.forEach((id) => {
-    if (allUsers[id]) dataArray.push(allUsers[id]);
-  });
+  if (userIds && allUsers)
+    userIds.forEach((id) => {
+      if (allUsers[id]) dataArray.push(allUsers[id]);
+    });
   return dataArray;
 };
 
