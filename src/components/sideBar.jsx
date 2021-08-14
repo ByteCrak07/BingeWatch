@@ -39,6 +39,20 @@ function Sidebar({ name }) {
       socket.on("welcomeFriends", handleWelcomeFriends);
       socket.on("byeFriend", handleByeFriend);
     }
+
+    const checkKey = (e) => {
+      if (e.key === "Enter") {
+        alert("blah");
+      }
+    };
+    document.addEventListener("keydown", checkKey);
+
+    return () => {
+      if (socket) {
+        socket.off("welcomeFriends");
+        socket.off("byeFriend");
+      }
+    };
     // eslint-disable-next-line
   }, [socket]);
 

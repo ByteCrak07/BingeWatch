@@ -113,23 +113,25 @@ export default function Stage({ match }) {
     >
       <Sidebar name={roomName} />
 
-      <div
-        className={`h-full w-full p-10 px-20 ${videoLoaded ? "" : "hidden"}`}
-      >
-        <div className="h-full w-full">
-          <VideoJS
-            options={{
-              ...videoJsOptions,
-              sources: [
-                {
-                  src: src,
-                  type: "video/mp4",
-                },
-              ],
-            }}
-          />
+      {videoLoaded ? (
+        <div className={"h-full w-full p-10 px-20"}>
+          <div className="h-full w-full">
+            <VideoJS
+              options={{
+                ...videoJsOptions,
+                sources: [
+                  {
+                    src: src,
+                    type: "video/mp4",
+                  },
+                ],
+              }}
+            />
+          </div>
         </div>
-      </div>
+      ) : (
+        ""
+      )}
 
       <div className={`${videoLoaded ? "hidden" : ""}`}>
         <input

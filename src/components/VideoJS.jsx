@@ -1,13 +1,17 @@
 import { useEffect, useRef } from "react";
 import videojs from "video.js";
-import "video.js/dist/video-js.css";
+// import "video.js/dist/video-js.css";
+// import "@videojs/themes/dist/forest/index.css";
 
 const VideoJS = ({ options }) => {
   const videoRef = useRef(null);
 
   const VideoHtml = () => (
     <div data-vjs-player>
-      <video ref={videoRef} className="video-js vjs-big-play-centered" />
+      <video
+        ref={videoRef}
+        className="video-js vjs-theme-forest vjs-big-play-centered"
+      />
     </div>
   );
 
@@ -23,10 +27,6 @@ const VideoJS = ({ options }) => {
       if (player) {
         player.dispose();
       }
-      // options.sources.map((source) => {
-      //   URL.revokeObjectURL(source.src);
-      //   return null;
-      // });
     };
   }, [options]);
 
