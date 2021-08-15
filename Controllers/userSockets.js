@@ -1,7 +1,7 @@
 const { iconList, iconLen } = require("../assets/icons");
 
-// users count
-var usersCount = 0;
+// icon no
+var iconNo = 0;
 
 const returnAudience = (userIds, allUsers) => {
   const dataArray = [];
@@ -15,10 +15,11 @@ const returnAudience = (userIds, allUsers) => {
 const UserSockets = (io, roomData, audienceData) => {
   // Connection Sockets
   io.on("connection", (socket) => {
-    usersCount++;
+    console.log(iconNo);
+    iconNo = (iconNo + 1) % iconLen;
     audienceData[socket.id] = {
       name: socket.Username,
-      icon: iconList[usersCount % iconLen],
+      icon: iconList[iconNo],
     };
     console.log("Connected: " + socket.Username);
 
@@ -26,7 +27,6 @@ const UserSockets = (io, roomData, audienceData) => {
 
     socket.on("disconnecting", () => {
       let rooms = socket.rooms;
-      usersCount--;
       delete audienceData[socket.id];
 
       rooms.forEach((room) => {
