@@ -59,13 +59,18 @@ function App() {
             {socket ? (
               <Route path="/:id" component={Stage} />
             ) : (
-              <div
-                className="flex flex-col items-center justify-center bg-darkBg"
-                style={{ height: "100vh", width: "100%" }}
-              >
-                Loading...
-                {!user ? history.push("/") : ""}
-              </div>
+              <Route
+                path="/:id"
+                render={() => (
+                  <div
+                    className="flex flex-col items-center justify-center bg-darkBg"
+                    style={{ height: "100vh", width: "100%" }}
+                  >
+                    Loading...
+                    {!user ? history.push("/") : ""}
+                  </div>
+                )}
+              />
             )}
           </Switch>
         </UserContext.Provider>

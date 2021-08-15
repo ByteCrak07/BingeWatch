@@ -1,5 +1,6 @@
 import { useContext, useEffect, useRef } from "react";
 import videojs from "video.js";
+import "videojs-event-tracking";
 // context
 import { SocketContext, UserContext } from "../states/contexts";
 // alert
@@ -9,6 +10,7 @@ const VideoJS = ({ options, roomId }) => {
   // contexts
   const { socket } = useContext(SocketContext);
   const { user } = useContext(UserContext);
+
   // refs
   const videoRef = useRef(null);
 
@@ -16,11 +18,24 @@ const VideoJS = ({ options, roomId }) => {
     const videoElement = videoRef.current;
     let player;
     if (videoElement) {
-      player = videojs(videoElement, options, () => {
-        console.log("player is ready");
-      });
+      player = videojs(
+        videoElement,
+        { ...options, plugins: { eventTracking: true } },
+        () => {
+          console.log("player is ready");
+        }
+      );
     }
 
+    // play btn
+    const playBtn = document.querySelector(
+      ".vjs-play-control.vjs-control.vjs-button"
+    );
+
+    // play state
+    let playing = false;
+
+    // handlers
     const playHandler = () => {
       console.log("playing");
 
@@ -33,10 +48,6 @@ const VideoJS = ({ options, roomId }) => {
       socket.emit("video-pause", { RoomId: roomId });
     };
 
-    const seekingHandler = (e) => {
-      console.log(e);
-    };
-
     const seekHandler = () => {
       console.log("seeked");
 
@@ -46,34 +57,62 @@ const VideoJS = ({ options, roomId }) => {
       });
     };
 
-    videoElement.addEventListener("play", playHandler);
-    videoElement.addEventListener("pause", pauseHandler);
-    videoElement.addEventListener("seeking", seekingHandler);
-    videoElement.addEventListener("seeked", seekHandler);
+    // play/pause
+    const playPauseEmit = () => {
+      if (playing) {
+        pauseHandler();
+        playing = false;
+      } else {
+        playHandler();
+        playing = true;
+      }
+    };
 
-    // check socket event for video playback
+    const checkPlayKey = (e) => {
+      if (e.key === " ") {
+        playPauseEmit();
+      }
+    };
+    document.addEventListener("keydown", checkPlayKey);
+
+    if (videoElement)
+      videoElement.onclick = () => {
+        console.log("klik");
+        playPauseEmit();
+      };
+
+    if (playBtn)
+      playBtn.onclick = () => {
+        playPauseEmit();
+      };
+
+    //  player.on("tracking:firstplay", (e, data) => console.log(e, data));
+
+    // required video listeners
+    videoElement.onended = (e) => {
+      console.log(e);
+      playing = false;
+    };
+
+    // socket listeners
     socket.on("client-play", (name) => {
       console.log("play", name);
+      playing = true;
 
       popAlert.display({
         type: "success",
         title: name,
         content: `${
-          videoElement.currentTime === 0 ? "Started playing" : "Resumed show"
+          videoElement.currentTime === 0 ? "Started the show" : "Resumed show"
         }`,
       });
 
-      videoElement.removeEventListener("play", playHandler);
-      setTimeout(() => {
-        player.play();
-        setTimeout(() => {
-          videoElement.addEventListener("play", playHandler);
-        }, 100);
-      }, 100);
+      player.play();
     });
 
     socket.on("client-pause", (name) => {
       console.log("pause", name);
+      playing = false;
 
       popAlert.display({
         type: "success",
@@ -81,30 +120,16 @@ const VideoJS = ({ options, roomId }) => {
         content: `Paused show`,
       });
 
-      videoElement.removeEventListener("pause", pauseHandler);
-      setTimeout(() => {
-        player.pause();
-        setTimeout(() => {
-          videoElement.addEventListener("pause", pauseHandler);
-        }, 100);
-      }, 100);
+      player.pause();
     });
 
     socket.on("client-seek", (name, time) => {
       console.log("seek", name);
-      videoElement.removeEventListener("play", playHandler);
-      videoElement.removeEventListener("pause", pauseHandler);
-      videoElement.removeEventListener("seeked", seekHandler);
-      setTimeout(() => {
-        if (name !== user) videoElement.currentTime = time;
-        setTimeout(() => {
-          videoElement.addEventListener("play", playHandler);
-          videoElement.addEventListener("pause", pauseHandler);
-          videoElement.addEventListener("seeked", seekHandler);
-        }, 200);
-      }, 100);
+
+      if (name !== user) videoElement.currentTime = time;
     });
 
+    // keyboard controls
     const checkKey = (e) => {
       if (e.key === " ") {
         if (videoElement.paused) videoElement.play();
