@@ -2,6 +2,8 @@ import { useContext, useEffect, useRef } from "react";
 import videojs from "video.js";
 // context
 import { SocketContext, UserContext } from "../states/contexts";
+// alert
+import { popAlert } from "./alerts/Alert";
 
 const VideoJS = ({ options, roomId }) => {
   // contexts
@@ -31,6 +33,10 @@ const VideoJS = ({ options, roomId }) => {
       socket.emit("video-pause", { RoomId: roomId });
     };
 
+    const seekingHandler = (e) => {
+      console.log(e);
+    };
+
     const seekHandler = () => {
       console.log("seeked");
 
@@ -42,18 +48,46 @@ const VideoJS = ({ options, roomId }) => {
 
     videoElement.addEventListener("play", playHandler);
     videoElement.addEventListener("pause", pauseHandler);
+    videoElement.addEventListener("seeking", seekingHandler);
     videoElement.addEventListener("seeked", seekHandler);
 
     // check socket event for video playback
     socket.on("client-play", (name) => {
       console.log("play", name);
 
-      player.play();
+      popAlert.display({
+        type: "success",
+        title: name,
+        content: `${
+          videoElement.currentTime === 0 ? "Started playing" : "Resumed show"
+        }`,
+      });
+
+      videoElement.removeEventListener("play", playHandler);
+      setTimeout(() => {
+        player.play();
+        setTimeout(() => {
+          videoElement.addEventListener("play", playHandler);
+        }, 100);
+      }, 100);
     });
 
     socket.on("client-pause", (name) => {
       console.log("pause", name);
-      player.pause();
+
+      popAlert.display({
+        type: "success",
+        title: name,
+        content: `Paused show`,
+      });
+
+      videoElement.removeEventListener("pause", pauseHandler);
+      setTimeout(() => {
+        player.pause();
+        setTimeout(() => {
+          videoElement.addEventListener("pause", pauseHandler);
+        }, 100);
+      }, 100);
     });
 
     socket.on("client-seek", (name, time) => {
