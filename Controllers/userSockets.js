@@ -1,4 +1,5 @@
 const { iconList, iconLen } = require("../assets/icons");
+
 // users count
 var usersCount = 0;
 
@@ -11,7 +12,8 @@ const returnAudience = (userIds, allUsers) => {
   return dataArray;
 };
 
-const ControlSockets = (io, roomData, audienceData) => {
+const UserSockets = (io, roomData, audienceData) => {
+  // Connection Sockets
   io.on("connection", (socket) => {
     usersCount++;
     audienceData[socket.id] = {
@@ -19,6 +21,8 @@ const ControlSockets = (io, roomData, audienceData) => {
       icon: iconList[usersCount % iconLen],
     };
     console.log("Connected: " + socket.Username);
+
+    console.log(audienceData);
 
     socket.on("disconnecting", () => {
       let rooms = socket.rooms;
@@ -41,7 +45,7 @@ const ControlSockets = (io, roomData, audienceData) => {
       console.log("Disconnected: " + socket.Username);
     });
 
-    //sockets
+    // User sockets
     socket.on("checkRoom", ({ RoomId }) => {
       if (!io.sockets.adapter.rooms.get(RoomId)) {
         io.emit("checkRoomconf", { conf: true });
@@ -96,7 +100,23 @@ const ControlSockets = (io, roomData, audienceData) => {
       });
     });
 
-    //chatsockets
+    // Video Sockets
+    socket.on("video-pause", ({ RoomId }) => {
+      console.log(socket.id + " video pause");
+      socket.to(RoomId).emit("client-pause", socket.Username);
+    });
+
+    socket.on("video-play", ({ RoomId }) => {
+      console.log(socket.id + " video play");
+      socket.to(RoomId).emit("client-play", socket.Username);
+    });
+
+    socket.on("video-seek", ({ RoomId, time }) => {
+      console.log(socket.id + " video seek");
+      socket.to(RoomId).emit("client-seek", socket.Username, time);
+    });
+
+    //chatsockets in dev (implemeting in beta)
     // socket.on("Newmessage", ({ RoomId, username, message }) => {
     //   const Newmessage = { username, message };
     //   io.to(RoomId).emit("newMessage", Newmessage);
@@ -109,4 +129,4 @@ const ControlSockets = (io, roomData, audienceData) => {
   });
 };
 
-module.exports = ControlSockets;
+module.exports = UserSockets;
