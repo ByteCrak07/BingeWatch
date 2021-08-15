@@ -89,44 +89,56 @@ const VideoJS = ({ options, roomId }) => {
     //  player.on("tracking:firstplay", (e, data) => console.log(e, data));
 
     // required video listeners
-    videoElement.onended = (e) => {
-      console.log(e);
+    videoElement.onended = () => {
       playing = false;
     };
+
+    const onSeekedHandler = (e) => {
+      seekHandler();
+    };
+    videoElement.addEventListener("seeked", onSeekedHandler);
 
     // socket listeners
     socket.on("client-play", (name) => {
       console.log("play", name);
       playing = true;
 
+      player.play();
+
       popAlert.display({
         type: "success",
         title: name,
         content: `${
-          videoElement.currentTime === 0 ? "Started the show" : "Resumed show"
+          videoElement.currentTime === 0
+            ? "Started the show"
+            : "Resumed the show"
         }`,
       });
-
-      player.play();
     });
 
     socket.on("client-pause", (name) => {
       console.log("pause", name);
       playing = false;
 
+      player.pause();
+
       popAlert.display({
         type: "success",
         title: name,
-        content: `Paused show`,
+        content: `Paused the show`,
       });
-
-      player.pause();
     });
 
     socket.on("client-seek", (name, time) => {
       console.log("seek", name);
 
-      if (name !== user) videoElement.currentTime = time;
+      videoElement.removeEventListener("seeked", onSeekedHandler);
+      setTimeout(() => {
+        if (name !== user) videoElement.currentTime = time;
+        setTimeout(() => {
+          videoElement.addEventListener("seeked", onSeekedHandler);
+        }, 1000);
+      }, 0);
     });
 
     // keyboard controls
