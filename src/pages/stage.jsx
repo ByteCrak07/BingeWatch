@@ -11,7 +11,7 @@ import Sidebar from "../components/sideBar";
 
 export default function Stage({ match }) {
   // contexts
-  const { socket, setupSocket } = useContext(SocketContext);
+  const { socket } = useContext(SocketContext);
   const { user } = useContext(UserContext);
   // states
   const [videoLoaded, setVideoLoaded] = useState(false);
