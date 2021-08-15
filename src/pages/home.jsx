@@ -168,7 +168,10 @@ export default function Home() {
             <button
               className="py-3 px-6 text-white rounded-lg bg-green-500 shadow-lg hover:bg-green-600"
               onClick={() => {
-                history.push(`/${roomId}`);
+                setupSocket();
+                setTimeout(() => {
+                  history.push(`/${roomId}`);
+                }, 100);
               }}
             >
               Join

@@ -1,6 +1,6 @@
 // dependencies
 import { useState, useEffect } from "react";
-import { Switch, Route } from "react-router-dom";
+import { Switch, Route, useHistory } from "react-router-dom";
 import io from "socket.io-client";
 // contexts
 import { SocketContext, UserContext } from "./states/contexts";
@@ -14,6 +14,8 @@ import Stage from "./pages/stage";
 function App() {
   const [socket, setSocket] = useState(null);
   const [user, setUser] = useState(sessionStorage.getItem("Username"));
+  // history
+  const history = useHistory();
 
   const setupSocket = (callback) => {
     console.log("setup");
@@ -54,7 +56,17 @@ function App() {
         <UserContext.Provider value={{ user, setUser }}>
           <Switch>
             <Route path="/" exact component={Home} />
-            <Route path="/:id" component={Stage} />
+            {socket ? (
+              <Route path="/:id" component={Stage} />
+            ) : (
+              <div
+                className="flex flex-col items-center justify-center bg-darkBg"
+                style={{ height: "100vh", width: "100%" }}
+              >
+                Loading...
+                {!user ? history.push("/") : ""}
+              </div>
+            )}
           </Switch>
         </UserContext.Provider>
       </SocketContext.Provider>

@@ -23,7 +23,7 @@ export default function Stage({ match }) {
   const history = useHistory();
 
   const handleJoinRoom = (paramSocket) => {
-    const tempSocket = paramSocket ? paramSocket : socket;
+    const tempSocket = socket;
 
     if (tempSocket) {
       tempSocket.emit("joinRoom", { RoomId: roomId });
@@ -48,7 +48,8 @@ export default function Stage({ match }) {
         }
       });
     } else {
-      setupSocket(handleJoinRoom);
+      console.log("errrrrr");
+      // setupSocket(handleJoinRoom);
     }
   };
 
@@ -80,7 +81,7 @@ export default function Stage({ match }) {
       }
     };
     // eslint-disable-next-line
-  }, [roomId, socket]);
+  }, [roomId]);
 
   const videoJsOptions = {
     controls: true,
@@ -126,6 +127,7 @@ export default function Stage({ match }) {
                   },
                 ],
               }}
+              roomId={roomId}
             />
           </div>
         </div>

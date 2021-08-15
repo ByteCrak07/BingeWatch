@@ -1,7 +1,13 @@
-import { useEffect, useRef } from "react";
+import { useContext, useEffect, useRef } from "react";
 import videojs from "video.js";
+// context
+import { SocketContext, UserContext } from "../states/contexts";
 
-const VideoJS = ({ options }) => {
+const VideoJS = ({ options, roomId }) => {
+  // contexts
+  const { socket } = useContext(SocketContext);
+  const { user } = useContext(UserContext);
+  // refs
   const videoRef = useRef(null);
 
   useEffect(() => {
@@ -13,13 +19,57 @@ const VideoJS = ({ options }) => {
       });
     }
 
-    videoElement.onplay = () => {
+    const playHandler = () => {
       console.log("playing");
+
+      socket.emit("video-play", { RoomId: roomId });
     };
 
-    videoElement.onpause = () => {
+    const pauseHandler = () => {
       console.log("paused");
+
+      socket.emit("video-pause", { RoomId: roomId });
     };
+
+    const seekHandler = () => {
+      console.log("seeked");
+
+      socket.emit("video-seek", {
+        RoomId: roomId,
+        time: videoElement.currentTime,
+      });
+    };
+
+    videoElement.addEventListener("play", playHandler);
+    videoElement.addEventListener("pause", pauseHandler);
+    videoElement.addEventListener("seeked", seekHandler);
+
+    // check socket event for video playback
+    socket.on("client-play", (name) => {
+      console.log("play", name);
+
+      player.play();
+    });
+
+    socket.on("client-pause", (name) => {
+      console.log("pause", name);
+      player.pause();
+    });
+
+    socket.on("client-seek", (name, time) => {
+      console.log("seek", name);
+      videoElement.removeEventListener("play", playHandler);
+      videoElement.removeEventListener("pause", pauseHandler);
+      videoElement.removeEventListener("seeked", seekHandler);
+      setTimeout(() => {
+        if (name !== user) videoElement.currentTime = time;
+        setTimeout(() => {
+          videoElement.addEventListener("play", playHandler);
+          videoElement.addEventListener("pause", pauseHandler);
+          videoElement.addEventListener("seeked", seekHandler);
+        }, 200);
+      }, 100);
+    });
 
     const checkKey = (e) => {
       if (e.key === " ") {
@@ -58,6 +108,7 @@ const VideoJS = ({ options }) => {
       }
       document.removeEventListener("keydown", checkKey);
     };
+    // eslint-disable-next-line
   }, [options]);
 
   return (
