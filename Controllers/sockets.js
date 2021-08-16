@@ -20,6 +20,7 @@ const UserSockets = (io, roomData, audienceData) => {
     audienceData[socket.id] = {
       name: socket.Username,
       icon: iconList[iconNo],
+      ready: false,
     };
     console.log("Connected: " + socket.Username);
 
@@ -101,6 +102,19 @@ const UserSockets = (io, roomData, audienceData) => {
     });
 
     // Video Sockets
+    socket.on("video-ready", ({ RoomId }) => {
+      audienceData[socket.id].ready = true;
+
+      let currentUsers = returnAudience(
+        io.sockets.adapter.rooms.get(RoomId),
+        audienceData
+      );
+      io.in(RoomId).emit("readyFriend", {
+        name: socket.Username,
+        currentUsers,
+      });
+    });
+
     socket.on("video-pause", ({ RoomId }) => {
       console.log(socket.id + " video pause");
       socket.to(RoomId).emit("client-pause", socket.Username);

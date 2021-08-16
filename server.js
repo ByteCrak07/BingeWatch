@@ -37,4 +37,4 @@ io.use((socket, next) => {
   } catch {}
 });
 
-require("./Controllers/userSockets")(io, roomData, audienceData);
+require("./Controllers/sockets")(io, roomData, audienceData);
