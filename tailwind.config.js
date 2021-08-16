@@ -14,6 +14,7 @@ module.exports = {
       },
       colors: {
         darkBg: "rgb(13,17,23)",
+        moreDarkBg: "#010409",
       },
     },
   },

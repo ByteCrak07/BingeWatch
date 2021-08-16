@@ -6,6 +6,9 @@ import { SocketContext, UserContext } from "../states/contexts";
 import { popAlert } from "../components/alerts/Alert";
 import logo from "../assets/logo.png";
 
+// passing setReadyStatus and setAudience
+const sidebarState = {};
+
 function Sidebar({ name }) {
   // contexts
   const { socket } = useContext(SocketContext);
@@ -13,6 +16,10 @@ function Sidebar({ name }) {
   // states
   const [audience, setAudience] = useState([]);
   const [collapse, setCollapse] = useState(true);
+  const [readyStatus, setReadyStatus] = useState({ ready: 0, waiting: 0 });
+
+  sidebarState.setAudience = setAudience;
+  sidebarState.setReadyStatus = setReadyStatus;
 
   const handleWelcomeFriends = ({ name, currentUsers }) => {
     if (name !== user)
@@ -34,20 +41,37 @@ function Sidebar({ name }) {
     setAudience(currentUsers);
   };
 
+  const handleReadyFriend = ({ name, currentUsers }) => {
+    if (name !== user) setAudience(currentUsers);
+  };
+
   useEffect(() => {
     if (socket) {
       socket.on("welcomeFriends", handleWelcomeFriends);
       socket.on("byeFriend", handleByeFriend);
+      socket.on("readyFriend", handleReadyFriend);
     }
 
     return () => {
       if (socket) {
         socket.off("welcomeFriends");
         socket.off("byeFriend");
+        socket.off("readyFriend");
       }
     };
     // eslint-disable-next-line
   }, [socket]);
+
+  useEffect(() => {
+    let status = { ready: 0, waiting: 0 };
+
+    audience.forEach((user) => {
+      if (user.ready) status.ready++;
+      else status.waiting++;
+    });
+
+    setReadyStatus(status);
+  }, [audience]);
 
   useEffect(() => {
     const sidebar = document.getElementsByClassName("sliding-sidebar")[0];
@@ -74,6 +98,22 @@ function Sidebar({ name }) {
 
   return (
     <>
+      {/* ready indicator */}
+      <div className="fixed bg-moreDarkBg my-2 ml-6 py-2 px-3 text-xs rounded-md top-0 left-0 text-gray-400">
+        <span className="text-green-400">
+          <i className="fas fa-circle"></i>&nbsp;
+          {readyStatus.waiting ? readyStatus.ready : ""} Ready{" "}
+          {readyStatus.waiting ? "" : "🎉"}
+        </span>
+        {readyStatus.waiting ? (
+          <span className="ml-3">
+            <i className="fas fa-circle"></i>&nbsp;{readyStatus.waiting} Waiting
+          </span>
+        ) : (
+          ""
+        )}
+      </div>
+
       {/* actual sidebar */}
       <div
         className="sidebar w-16 h-screen bg-gray-900 fixed top-0 right-0 overflow-auto"
@@ -91,11 +131,11 @@ function Sidebar({ name }) {
           {audience.map((user, i) => (
             <button
               key={"user" + i}
-              className={
-                "flex items-center justify-center " +
-                (i !== 0 ? "mt-5 " : "") +
-                "py-3 w-full focus:outline-none text-gray-400 hover:bg-gray-700"
-              }
+              className={`flex items-center justify-center ${
+                i ? "mt-5 " : ""
+              } py-3 w-full focus:outline-none ${
+                user.ready ? "text-green-400" : "text-gray-400"
+              } hover:bg-gray-700`}
             >
               <div
                 className="flex justify-center items-center"
@@ -140,11 +180,11 @@ function Sidebar({ name }) {
           {audience.map((user, i) => (
             <button
               key={"usersliding" + i}
-              className={
-                "flex items-center " +
-                (i !== 0 ? "mt-5 " : "") +
-                "py-2 px-8 w-full focus:outline-none text-gray-400 sm:hover:bg-gray-700 sm:hover:text-gray-100"
-              }
+              className={`flex items-center ${
+                i ? "mt-5 " : ""
+              } py-2 px-8 w-full focus:outline-none ${
+                user.ready ? "text-green-400" : "text-gray-400"
+              } hover:bg-gray-700`}
             >
               <div
                 className="flex justify-center items-center"
@@ -162,4 +202,5 @@ function Sidebar({ name }) {
   );
 }
 
+export { sidebarState };
 export default Sidebar;

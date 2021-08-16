@@ -3,6 +3,7 @@ import videojs from "video.js";
 import "videojs-event-tracking";
 // context
 import { SocketContext, UserContext } from "../states/contexts";
+import { sidebarState } from "./sideBar";
 // alert
 import { popAlert } from "./alerts/Alert";
 
@@ -22,6 +23,21 @@ const VideoJS = ({ options, roomId }) => {
         videoElement,
         { ...options, plugins: { eventTracking: true } },
         () => {
+          socket.emit("video-ready", { RoomId: roomId });
+          sidebarState.setReadyStatus((state) => {
+            let status = { ...state };
+            status.ready++;
+            status.waiting--;
+            return status;
+          });
+          sidebarState.setAudience((state) => {
+            let audience = [];
+            state.forEach((st) => {
+              if (st.name === user) st.ready = true;
+              audience.push(st);
+            });
+            return audience;
+          });
           console.log("player is ready");
         }
       );
@@ -77,7 +93,6 @@ const VideoJS = ({ options, roomId }) => {
 
     if (videoElement)
       videoElement.onclick = () => {
-        console.log("klik");
         playPauseEmit();
       };
 
@@ -135,6 +150,11 @@ const VideoJS = ({ options, roomId }) => {
       videoElement.removeEventListener("seeked", onSeekedHandler);
       setTimeout(() => {
         if (name !== user) videoElement.currentTime = time;
+        popAlert.display({
+          type: "success",
+          title: name,
+          content: `Seeked to ${parseInt(time * 100) / 100}`,
+        });
         setTimeout(() => {
           videoElement.addEventListener("seeked", onSeekedHandler);
         }, 1000);
