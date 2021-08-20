@@ -46,6 +46,24 @@ const VideoJS = ({ options, roomId }) => {
       ".vjs-play-control.vjs-control.vjs-button"
     );
 
+    // pic-in-pic btn
+    const picInPicBtn = document.querySelector(
+      ".vjs-picture-in-picture-control.vjs-control.vjs-button"
+    );
+
+    // fullscreen btn
+    const fullScreenBtn = document.querySelector(
+      ".vjs-fullscreen-control.vjs-control.vjs-button"
+    );
+
+    // preventing btns from focusing on click
+    const preventFocus = (e) => {
+      e.target.blur();
+    };
+    playBtn.addEventListener("click", preventFocus);
+    picInPicBtn.addEventListener("click", preventFocus);
+    fullScreenBtn.addEventListener("click", preventFocus);
+
     // play state
     let playing = false;
 
@@ -186,9 +204,6 @@ const VideoJS = ({ options, roomId }) => {
         }
       }
       if (e.key === "f") {
-        const fullScreenBtn = document.getElementsByClassName(
-          "vjs-fullscreen-control"
-        )[0];
         fullScreenBtn.click();
       }
     };

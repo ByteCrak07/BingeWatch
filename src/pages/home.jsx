@@ -80,7 +80,6 @@ export default function Home() {
         className="flex items-center justify-center flex-col bg-darkBg"
         style={{ height: "100vh", width: "100vw" }}
       >
-        {socket?.toString()}
         <input
           type="text"
           placeholder="Name"
@@ -93,7 +92,8 @@ export default function Home() {
         <div>
           <button
             className="py-3 px-6 mr-2 text-white rounded-lg bg-green-500 shadow-lg hover:bg-green-600 disabled:bg-gray-500 disabled:cursor-not-allowed"
-            onClick={() => {
+            onClick={(e) => {
+              e.target.blur();
               setShowModal1(true);
               addUser();
               handleCheckRoom();
@@ -104,7 +104,8 @@ export default function Home() {
           </button>
           <button
             className="py-3 px-6 text-white rounded-lg bg-green-500 shadow-lg hover:bg-green-600 disabled:bg-gray-500 disabled:cursor-not-allowed"
-            onClick={() => {
+            onClick={(e) => {
+              e.target.blur();
               setShowModal2(true);
               addUser();
             }}
@@ -118,36 +119,41 @@ export default function Home() {
       {showModal1 ? (
         <Modal setShowModal={setShowModal1}>
           <>
-            <input
-              type="text"
-              placeholder="Room Name"
-              className="px-5 py-3 w-full mb-3 mr-3 relative bg-white rounded text-sm border-0 shadow outline-none ring-2 ring-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              onChange={(e) => {
-                setRoomName(e.target.value);
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleCreateRoom();
               }}
-              maxLength="30"
-            />
-            <div className="flex justify-evenly items-center">
-              <span className="mr-2">
-                <span className="font-bold">Room ID:</span>{" "}
-                <span style={{ width: 25 }} ref={copySpan}>
-                  {roomId}
+            >
+              <input
+                type="text"
+                placeholder="Room Name"
+                className="px-5 py-3 w-full mb-3 mr-3 relative bg-white rounded text-sm border-0 shadow outline-none ring-2 ring-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                onChange={(e) => {
+                  setRoomName(e.target.value);
+                }}
+                maxLength="30"
+                required
+              />
+              <div className="flex justify-evenly items-center">
+                <span className="mr-2">
+                  <span className="font-bold">Room ID:</span>{" "}
+                  <span style={{ width: 25 }} ref={copySpan}>
+                    {roomId}
+                  </span>
                 </span>
-              </span>
-              {roomId ? (
-                <button
-                  className="py-3 px-6 text-white rounded-lg bg-green-500 shadow-lg hover:bg-green-600 disabled:bg-gray-500 disabled:cursor-not-allowed"
-                  onClick={() => {
-                    handleCreateRoom();
-                  }}
-                  disabled={!roomName}
-                >
-                  Create Room
-                </button>
-              ) : (
-                ""
-              )}
-            </div>
+                {roomId ? (
+                  <button
+                    className="py-3 px-6 text-white rounded-lg bg-green-500 shadow-lg hover:bg-green-600 disabled:bg-gray-500 disabled:cursor-not-allowed"
+                    disabled={!roomName}
+                  >
+                    Create Room
+                  </button>
+                ) : (
+                  ""
+                )}
+              </div>
+            </form>
           </>
         </Modal>
       ) : (
@@ -157,25 +163,28 @@ export default function Home() {
       {showModal2 ? (
         <Modal setShowModal={setShowModal2} clearValue={setRoomId}>
           <>
-            <input
-              type="text"
-              placeholder="Room ID"
-              className="px-5 py-3 mb-3 mr-3 relative bg-white rounded text-sm border-0 shadow outline-none ring-2 ring-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              onChange={(e) => {
-                setRoomId(e.target.value);
-              }}
-            />
-            <button
-              className="py-3 px-6 text-white rounded-lg bg-green-500 shadow-lg hover:bg-green-600"
-              onClick={() => {
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
                 setupSocket();
                 setTimeout(() => {
                   history.push(`/${roomId}`);
                 }, 100);
               }}
             >
-              Join
-            </button>
+              <input
+                type="text"
+                placeholder="Room ID"
+                className="px-5 py-3 mb-3 mr-3 relative bg-white rounded text-sm border-0 shadow outline-none ring-2 ring-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                onChange={(e) => {
+                  setRoomId(e.target.value);
+                }}
+                required
+              />
+              <button className="py-3 px-6 text-white rounded-lg bg-green-500 shadow-lg hover:bg-green-600">
+                Join
+              </button>
+            </form>
           </>
         </Modal>
       ) : (
