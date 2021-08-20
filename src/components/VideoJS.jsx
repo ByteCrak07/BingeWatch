@@ -1,6 +1,5 @@
 import { useContext, useEffect, useRef } from "react";
 import videojs from "video.js";
-import "videojs-event-tracking";
 // context
 import { SocketContext, UserContext } from "../states/contexts";
 import { sidebarState } from "./sideBar";
@@ -19,29 +18,28 @@ const VideoJS = ({ options, roomId }) => {
     const videoElement = videoRef.current;
     let player;
     if (videoElement) {
-      player = videojs(
-        videoElement,
-        { ...options, plugins: { eventTracking: true } },
-        () => {
-          socket.emit("video-ready", { RoomId: roomId });
-          sidebarState.setReadyStatus((state) => {
-            let status = { ...state };
-            status.ready++;
-            status.waiting--;
-            return status;
+      player = videojs(videoElement, options, () => {
+        socket.emit("video-ready", { RoomId: roomId });
+        sidebarState.setReadyStatus((state) => {
+          let status = { ...state };
+          status.ready++;
+          status.waiting--;
+          return status;
+        });
+        sidebarState.setAudience((state) => {
+          let audience = [];
+          state.forEach((st) => {
+            if (st.name === user) st.ready = true;
+            audience.push(st);
           });
-          sidebarState.setAudience((state) => {
-            let audience = [];
-            state.forEach((st) => {
-              if (st.name === user) st.ready = true;
-              audience.push(st);
-            });
-            return audience;
-          });
-          console.log("player is ready");
-        }
-      );
+          return audience;
+        });
+        console.log("player is ready");
+      });
     }
+
+    // big play btn
+    const bigPlayBtn = document.querySelector(".vjs-big-play-button");
 
     // play btn
     const playBtn = document.querySelector(
@@ -96,12 +94,15 @@ const VideoJS = ({ options, roomId }) => {
         playPauseEmit();
       };
 
+    if (bigPlayBtn)
+      bigPlayBtn.onclick = () => {
+        playPauseEmit();
+      };
+
     if (playBtn)
       playBtn.onclick = () => {
         playPauseEmit();
       };
-
-    //  player.on("tracking:firstplay", (e, data) => console.log(e, data));
 
     // required video listeners
     videoElement.onended = () => {
