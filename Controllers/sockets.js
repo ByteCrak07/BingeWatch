@@ -13,8 +13,7 @@ const returnAudience = (userIds, allUsers) => {
 };
 
 const UserSockets = (io, roomData, audienceData) => {
-  // Connection Sockets
-  io.on("connection", (socket) => {
+  const onConnection = (socket) => {
     console.log(iconNo);
     iconNo = (iconNo + 1) % iconLen;
     audienceData[socket.id] = {
@@ -25,6 +24,11 @@ const UserSockets = (io, roomData, audienceData) => {
     console.log("Connected: " + socket.Username);
 
     console.log(audienceData);
+  };
+
+  // Connection Sockets
+  io.on("connection", (socket) => {
+    onConnection(socket);
 
     socket.on("disconnecting", () => {
       let rooms = socket.rooms;
