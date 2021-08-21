@@ -142,11 +142,12 @@ function Stage({ match }) {
           videoLoaded ? "hidden" : ""
         }`}
       >
-        <input
-          type="file"
-          className="py-3 px-6 mt-5 text-white rounded-lg bg-green-500 shadow-lg block md:inline-block"
-          onChange={handleVideoUpload}
-        />
+        <label className="w-64 flex flex-col items-center px-4 py-6 border-4 border-green-400 rounded-md shadow-md tracking-wide uppercase cursor-pointer hover:bg-green-400 hover:text-white text-green-400 ease-linear transition-all duration-150">
+          <i className="fas fa-theater-masks fa-3x"></i>
+          <span className="mt-2 text-base leading-normal">Select a movie</span>
+          <input type="file" className="hidden" onChange={handleVideoUpload} />
+        </label>
+
         <span className="text-white">
           {percent ? "Loading: " + percent + "%" : ""}
         </span>
