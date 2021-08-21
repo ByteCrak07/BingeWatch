@@ -2,17 +2,20 @@
 import { useEffect, useState, useContext } from "react";
 import { useHistory } from "react-router-dom";
 // contexts
-import { SocketContext, UserContext } from "../states/contexts";
+import { SocketContext, UserContext, RoomContext } from "../states/contexts";
 import apiUrl from "../states/apiUrl";
 // components
 import { popAlert } from "../components/alerts/Alert";
 import VideoJS from "../components/VideoJS";
 import Sidebar from "../components/sideBar";
+// pages
+import Loading from "./loading";
 
-export default function Stage({ match }) {
+function Stage({ match }) {
   // contexts
   const { socket } = useContext(SocketContext);
   const { user } = useContext(UserContext);
+  const { setRoomData } = useContext(RoomContext);
   // states
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [percent, setPercent] = useState(0);
@@ -22,39 +25,37 @@ export default function Stage({ match }) {
   // history
   const history = useHistory();
 
-  const handleJoinRoom = (paramSocket) => {
-    const tempSocket = socket;
-
-    if (tempSocket) {
-      tempSocket.emit("joinRoom", { RoomId: roomId });
-      tempSocket.on("joinRoomconf", ({ conf }) => {
-        if (conf) {
-          tempSocket.off("joinRoomconf");
-          console.log("room joined");
-          popAlert.display({
-            type: "success",
-            title: "",
-            content: "Binge🍿 with your friends🎉",
-          });
-        } else {
-          popAlert.display({
-            type: "danger",
-            title: "Error!",
-            icon: true,
-            content: "Room doesn't exist",
-          });
-          tempSocket.off("joinRoomconf");
-          history.push("/");
-        }
-      });
-    } else {
-      console.log("errrrrr");
-      // setupSocket(handleJoinRoom);
-    }
-  };
-
   useEffect(() => {
+    const handleJoinRoom = () => {
+      if (socket) {
+        socket.emit("joinRoom", { RoomId: roomId });
+        socket.on("joinRoomconf", ({ conf }) => {
+          if (conf) {
+            socket.off("joinRoomconf");
+            // console.log("room joined");
+            setRoomData({ id: roomId, inRoom: true });
+            popAlert.display({
+              type: "success",
+              title: "",
+              content: "Binge🍿 with your friends🎉",
+            });
+          } else {
+            setRoomData({ id: null, inRoom: false });
+            popAlert.display({
+              type: "danger",
+              title: "Error!",
+              icon: true,
+              content: "Room doesn't exist",
+            });
+            socket.off("joinRoomconf");
+            history.push("/");
+          }
+        });
+      }
+    };
+
     if (!user) {
+      setRoomData({ id: match.params.id, inRoom: false });
       history.push("/");
       popAlert.display({
         type: "danger",
@@ -78,6 +79,7 @@ export default function Stage({ match }) {
     return () => {
       if (socket) {
         socket.emit("leaveRoom", { RoomId: roomId });
+        setRoomData({ id: null, inRoom: false });
       }
     };
     // eslint-disable-next-line
@@ -151,4 +153,9 @@ export default function Stage({ match }) {
       </div>
     </div>
   );
+}
+
+export default function StageWrapper({ match }) {
+  const { socket } = useContext(SocketContext);
+  return <>{socket ? <Stage match={match} /> : <Loading match={match} />}</>;
 }

@@ -1,24 +1,24 @@
 // dependencies
 import { useState, useEffect } from "react";
-import { Switch, Route, useHistory } from "react-router-dom";
+import { Switch, Route } from "react-router-dom";
 import io from "socket.io-client";
 // contexts
-import { SocketContext, UserContext } from "./states/contexts";
+import { SocketContext, UserContext, RoomContext } from "./states/contexts";
 import apiUrl from "./states/apiUrl";
 // components
 import Alert from "./components/alerts/Alert";
 // pages
 import Home from "./pages/home";
 import Stage from "./pages/stage";
+// fns
+import { VideoJSfn } from "./components/VideoJS";
 
 function App() {
   const [socket, setSocket] = useState(null);
   const [user, setUser] = useState(sessionStorage.getItem("Username"));
-  // history
-  const history = useHistory();
+  const [roomData, setRoomData] = useState({ id: null, inRoom: false });
 
   const setupSocket = (callback) => {
-    console.log("setup");
     let sessionUser = sessionStorage.getItem("Username");
     if (sessionUser && !socket) {
       const newSocket = io(`${apiUrl}/`, {
@@ -29,6 +29,19 @@ function App() {
 
       newSocket.on("disconnect", () => {
         console.log("Socket Disconnected");
+        newSocket.off("connect");
+
+        // reconnecting
+        newSocket.on("connect", () => {
+          console.log("Socket Reconnected");
+          if (window.location.pathname.length > 11)
+            newSocket.emit("joinRoom", {
+              RoomId: window.location.pathname.slice(-11),
+            });
+          if (VideoJSfn.emitVideoReady) {
+            VideoJSfn.emitVideoReady();
+          }
+        });
       });
 
       newSocket.on("connect", () => {
@@ -54,25 +67,12 @@ function App() {
     <>
       <SocketContext.Provider value={{ socket, setupSocket }}>
         <UserContext.Provider value={{ user, setUser }}>
-          <Switch>
-            <Route path="/" exact component={Home} />
-            {socket ? (
+          <RoomContext.Provider value={{ roomData, setRoomData }}>
+            <Switch>
+              <Route path="/" exact component={Home} />
               <Route path="/:id" component={Stage} />
-            ) : (
-              <Route
-                path="/:id"
-                render={() => (
-                  <div
-                    className="flex flex-col items-center justify-center bg-darkBg"
-                    style={{ height: "100vh", width: "100%" }}
-                  >
-                    Loading...
-                    {!user ? history.push("/") : ""}
-                  </div>
-                )}
-              />
-            )}
-          </Switch>
+            </Switch>
+          </RoomContext.Provider>
         </UserContext.Provider>
       </SocketContext.Provider>
       <Alert />

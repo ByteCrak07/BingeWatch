@@ -1,12 +1,13 @@
 import { useRef, useState, useContext } from "react";
 import Modal from "../components/modal";
 import { useHistory } from "react-router-dom";
-import { SocketContext, UserContext } from "../states/contexts";
+import { SocketContext, UserContext, RoomContext } from "../states/contexts";
 
 export default function Home() {
   // contexts
   const { socket, setupSocket } = useContext(SocketContext);
   const { user, setUser } = useContext(UserContext);
+  const { roomData } = useContext(RoomContext);
   // states
   const [showModal1, setShowModal1] = useState(false);
   const [showModal2, setShowModal2] = useState(false);
@@ -37,14 +38,12 @@ export default function Home() {
         if (conf) {
           setRoomId(randRoom);
           tempSocket.off("checkRoomconf");
-          console.log("room available");
         } else {
           tempSocket.off("checkRoomconf");
           setTimeout(handleCheckRoom, 1000);
         }
       });
     } else {
-      console.log(roomId, tempSocket);
       setupSocket(handleCheckRoom);
     }
   };
@@ -84,6 +83,7 @@ export default function Home() {
           type="text"
           placeholder="Name"
           defaultValue={name}
+          autoFocus
           onChange={(e) => {
             setName(e.target.value);
           }}
@@ -106,8 +106,13 @@ export default function Home() {
             className="py-3 px-6 text-white rounded-lg bg-green-500 shadow-lg hover:bg-green-600 disabled:bg-gray-500 disabled:cursor-not-allowed"
             onClick={(e) => {
               e.target.blur();
-              setShowModal2(true);
               addUser();
+              if (roomData.id) {
+                setupSocket();
+                setTimeout(() => {
+                  history.push(`/${roomData.id}`);
+                }, 100);
+              } else setShowModal2(true);
             }}
             disabled={!name}
           >
@@ -132,6 +137,7 @@ export default function Home() {
                 onChange={(e) => {
                   setRoomName(e.target.value);
                 }}
+                autoFocus
                 maxLength="30"
                 required
               />
@@ -179,6 +185,7 @@ export default function Home() {
                 onChange={(e) => {
                   setRoomId(e.target.value);
                 }}
+                autoFocus
                 required
               />
               <button className="py-3 px-6 text-white rounded-lg bg-green-500 shadow-lg hover:bg-green-600">

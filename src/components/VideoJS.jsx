@@ -6,6 +6,9 @@ import { sidebarState } from "./sideBar";
 // alert
 import { popAlert } from "./alerts/Alert";
 
+// to export videojs functions
+const VideoJSfn = {};
+
 const VideoJS = ({ options, roomId }) => {
   // contexts
   const { socket } = useContext(SocketContext);
@@ -19,22 +22,30 @@ const VideoJS = ({ options, roomId }) => {
     let player;
     if (videoElement) {
       player = videojs(videoElement, options, () => {
-        socket.emit("video-ready", { RoomId: roomId });
-        sidebarState.setReadyStatus((state) => {
-          let status = { ...state };
-          status.ready++;
-          status.waiting--;
-          return status;
-        });
-        sidebarState.setAudience((state) => {
-          let audience = [];
-          state.forEach((st) => {
-            if (st.name === user) st.ready = true;
-            audience.push(st);
-          });
-          return audience;
-        });
-        console.log("player is ready");
+        // using this fn if reconnection occurs
+        const emitVideoReady = () => {
+          socket.emit("video-ready", { RoomId: roomId });
+          setTimeout(() => {
+            sidebarState.setReadyStatus((state) => {
+              let status = { ...state };
+              status.ready++;
+              status.waiting--;
+              return status;
+            });
+            sidebarState.setAudience((state) => {
+              let audience = [];
+              state.forEach((st) => {
+                if (st.name === user) st.ready = true;
+                audience.push(st);
+              });
+              return audience;
+            });
+          }, 1000);
+        };
+
+        emitVideoReady();
+        VideoJSfn.emitVideoReady = emitVideoReady;
+        // console.log("player is ready");
       });
     }
 
@@ -69,19 +80,19 @@ const VideoJS = ({ options, roomId }) => {
 
     // handlers
     const playHandler = () => {
-      console.log("playing");
+      // console.log("playing");
 
       socket.emit("video-play", { RoomId: roomId });
     };
 
     const pauseHandler = () => {
-      console.log("paused");
+      // console.log("paused");
 
       socket.emit("video-pause", { RoomId: roomId });
     };
 
     const seekHandler = () => {
-      console.log("seeked");
+      // console.log("seeked");
 
       socket.emit("video-seek", {
         RoomId: roomId,
@@ -134,7 +145,7 @@ const VideoJS = ({ options, roomId }) => {
 
     // socket listeners
     socket.on("client-play", (name) => {
-      console.log("play", name);
+      // console.log("play", name);
       playing = true;
 
       player.play();
@@ -151,7 +162,7 @@ const VideoJS = ({ options, roomId }) => {
     });
 
     socket.on("client-pause", (name) => {
-      console.log("pause", name);
+      // console.log("pause", name);
       playing = false;
 
       player.pause();
@@ -164,7 +175,7 @@ const VideoJS = ({ options, roomId }) => {
     });
 
     socket.on("client-seek", (name, time) => {
-      console.log("seek", name);
+      // console.log("seek", name);
 
       videoElement.removeEventListener("seeked", onSeekedHandler);
       setTimeout(() => {
@@ -227,4 +238,6 @@ const VideoJS = ({ options, roomId }) => {
     </div>
   );
 };
+
 export default VideoJS;
+export { VideoJSfn };
