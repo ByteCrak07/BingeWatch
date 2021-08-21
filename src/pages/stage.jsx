@@ -19,6 +19,7 @@ function Stage({ match }) {
   // states
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [percent, setPercent] = useState(0);
+  const [fileName, setFilename] = useState("");
   const [src, setSrc] = useState("");
   const [roomId] = useState(match.params.id);
   const [roomName, setRoomName] = useState("");
@@ -92,6 +93,7 @@ function Stage({ match }) {
 
   const handleVideoUpload = (event) => {
     const file = event.target.files[0];
+    setFilename(event.target.files[0].name);
 
     let reader = new FileReader();
     reader.onprogress = function (e) {
@@ -144,8 +146,15 @@ function Stage({ match }) {
       >
         <label className="w-64 flex flex-col items-center px-4 py-6 border-4 border-green-400 rounded-md shadow-md tracking-wide uppercase cursor-pointer hover:bg-green-400 hover:text-white text-green-400 ease-linear transition-all duration-150">
           <i className="fas fa-theater-masks fa-3x"></i>
-          <span className="mt-2 text-base leading-normal">Select a movie</span>
-          <input type="file" className="hidden" onChange={handleVideoUpload} />
+          <span className="mt-2 text-base leading-normal">
+            {fileName ? fileName.substring(0, 20) : "Select a movie"}
+          </span>
+          <input
+            type="file"
+            className="hidden"
+            onChange={handleVideoUpload}
+            disabled={fileName ? true : false}
+          />
         </label>
 
         <span className="text-white">
